@@ -690,10 +690,12 @@ export class NodeDiscordPlayerExtension {
         if (this.#generation !== generation)
             return;
         const runtime = this.#activeRuntime;
-        this.#client = null;
-        this.#generation = null;
         if (runtime !== null)
             await runtime.destroy(signal);
+        if (this.#generation !== generation)
+            return;
+        this.#client = null;
+        this.#generation = null;
     }
     create(options) {
         const client = this.#client;

@@ -93,4 +93,39 @@ describe("NodeDiscordPlayerExtension", () => {
       providerClient.destroy();
     }
   });
+
+  it("retains the bound generation until runtime destruction succeeds", async () => {
+    const providerClient = new Client({
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildVoiceStates
+      ]
+    });
+    try {
+      const extension = new NodeDiscordPlayerExtension();
+      const protocol = protocolFor(extension);
+      protocol.bindProviderClient(providerClient, 7);
+      extension.create(runtimeOptions);
+
+      const cancelled = new AbortController();
+      cancelled.abort();
+      await assert.rejects(
+        protocol.releaseProviderClient(7, cancelled.signal),
+        (error: unknown) =>
+          error instanceof DOMException && error.name === "AbortError"
+      );
+      assert.throws(
+        () => extension.create(runtimeOptions),
+        /already active/u
+      );
+
+      await protocol.releaseProviderClient(
+        7,
+        new AbortController().signal
+      );
+      assert.throws(() => extension.create(runtimeOptions), /not bound/u);
+    } finally {
+      providerClient.destroy();
+    }
+  });
 });

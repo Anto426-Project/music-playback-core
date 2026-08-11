@@ -1213,9 +1213,10 @@ export class NodeDiscordPlayerExtension
   ): Promise<void> {
     if (this.#generation !== generation) return;
     const runtime = this.#activeRuntime;
+    if (runtime !== null) await runtime.destroy(signal);
+    if (this.#generation !== generation) return;
     this.#client = null;
     this.#generation = null;
-    if (runtime !== null) await runtime.destroy(signal);
   }
 
   public create(
