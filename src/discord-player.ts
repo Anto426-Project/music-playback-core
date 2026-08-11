@@ -1126,10 +1126,6 @@ class NodeDiscordPlayerRuntime implements MusicPlaybackRuntime {
   }
 }
 
-const NODE_DISCORD_PROVIDER_EXTENSION_PROTOCOL = Symbol.for(
-  "@anto-project/discord-bot-core/provider-extension/v1"
-);
-
 const compatibleDiscordClient = (providerClient: unknown): Client => {
   if (
     providerClient === null ||
@@ -1140,7 +1136,7 @@ const compatibleDiscordClient = (providerClient: unknown): Client => {
       .channels?.fetch !== "function"
   ) {
     throw new TypeError(
-      "The music extension requires a compatible Discord provider client."
+      "The music provider binding requires a compatible Discord provider client."
     );
   }
   const client = providerClient as Client;
@@ -1149,50 +1145,44 @@ const compatibleDiscordClient = (providerClient: unknown): Client => {
     !client.options.intents.has(GatewayIntentBits.GuildVoiceStates)
   ) {
     throw new TypeError(
-      "The music extension requires Guilds and GuildVoiceStates intents."
+      "The music provider binding requires Guilds and GuildVoiceStates intents."
     );
   }
   return client;
 };
 
 /**
- * Discord Player v7 extension for discord-bot-core's opaque provider host.
- * The provider client exists only inside this concrete adapter and is rebound
- * whenever the owning Discord gateway advances to a new client generation.
+ * Generation-aware Discord Player v7 provider binding.
+ *
+ * The composition root owns the bridge to its Discord gateway and passes the
+ * provider client as an opaque value. Discord.js remains confined to this
+ * concrete adapter and never appears in the public declaration contract.
  */
-export class NodeDiscordPlayerExtension
+export class NodeDiscordPlayerProviderBinding
   implements MusicPlaybackRuntimeFactory
 {
   #client: Client | null = null;
   #generation: number | null = null;
+  #latestGeneration = 0;
   #activeRuntime: NodeDiscordPlayerRuntime | null = null;
+  #releaseState: Readonly<{
+    generation: number;
+    operation: Promise<void>;
+  }> | null = null;
 
-  public constructor() {
-    Object.defineProperty(this, NODE_DISCORD_PROVIDER_EXTENSION_PROTOCOL, {
-      configurable: false,
-      enumerable: false,
-      writable: false,
-      value: Object.freeze({
-        key: "music-playback.discord-player",
-        bindProviderClient: (
-          providerClient: unknown,
-          generation: number
-        ): void => this.#bindProviderClient(providerClient, generation),
-        releaseProviderClient: async (
-          generation: number,
-          signal: AbortSignal
-        ): Promise<void> =>
-          await this.#releaseProviderClient(generation, signal)
-      })
-    });
-  }
-
-  #bindProviderClient(
+  public bindProviderClient(
     providerClient: unknown,
     generation: number
   ): void {
     if (!Number.isSafeInteger(generation) || generation < 1) {
       throw new TypeError("The Discord provider generation is invalid.");
+    }
+    if (this.#releaseState !== null) {
+      throw new MusicPlaybackError(
+        "MUSIC.MEDIA_ENGINE_UNAVAILABLE",
+        "The Discord music generation is being released.",
+        true
+      );
     }
     const client = compatibleDiscordClient(providerClient);
     if (this.#client === client && this.#generation === generation) return;
@@ -1203,30 +1193,80 @@ export class NodeDiscordPlayerExtension
         true
       );
     }
+    if (generation <= this.#latestGeneration) {
+      throw new TypeError(
+        "The Discord provider generation must advance monotonically."
+      );
+    }
     this.#client = client;
     this.#generation = generation;
+    this.#latestGeneration = generation;
   }
 
-  async #releaseProviderClient(
+  public async releaseProviderClient(
     generation: number,
     signal: AbortSignal
   ): Promise<void> {
+    const cancellationError = new MusicPlaybackError(
+      "MUSIC.PLAYBACK_TIMEOUT",
+      "The Discord music generation release was cancelled.",
+      true
+    );
+    const activeRelease = this.#releaseState;
+    if (activeRelease !== null) {
+      if (activeRelease.generation !== generation) return;
+      await awaitWithSignal(
+        activeRelease.operation,
+        signal,
+        cancellationError
+      );
+      return;
+    }
     if (this.#generation !== generation) return;
-    const runtime = this.#activeRuntime;
-    if (runtime !== null) await runtime.destroy(signal);
-    if (this.#generation !== generation) return;
-    this.#client = null;
-    this.#generation = null;
+    const release = async (): Promise<void> => {
+      aborted(signal, cancellationError);
+      const runtime = this.#activeRuntime;
+      if (runtime !== null) await runtime.destroy(signal);
+      if (this.#generation !== generation) return;
+      // Runtime destruction invokes its callback before this continuation and
+      // may therefore expose a null active runtime. The release state remains
+      // set until all three fields are transitioned together, so create() and
+      // bindProviderClient() cannot enter that window.
+      this.#activeRuntime = null;
+      this.#client = null;
+      this.#generation = null;
+    };
+    let trackedOperation!: Promise<void>;
+    trackedOperation = release().finally(() => {
+      if (this.#releaseState?.operation === trackedOperation) {
+        this.#releaseState = null;
+      }
+    });
+    this.#releaseState = Object.freeze({
+      generation,
+      operation: trackedOperation
+    });
+    // The initiating signal already governs release(). Await the tracked
+    // operation directly so even a pre-aborted release has a rejection
+    // observer before the current turn completes.
+    await trackedOperation;
   }
 
   public create(
     options: MusicPlaybackRuntimeOptions
   ): MusicPlaybackRuntime {
+    if (this.#releaseState !== null) {
+      throw new MusicPlaybackError(
+        "MUSIC.MEDIA_ENGINE_UNAVAILABLE",
+        "The Discord music generation is being released.",
+        true
+      );
+    }
     const client = this.#client;
     if (client === null || this.#generation === null) {
       throw new MusicPlaybackError(
         "MUSIC.MEDIA_ENGINE_UNAVAILABLE",
-        "The Discord provider client is not bound to the music extension.",
+        "The Discord provider client is not bound to the music provider binding.",
         true
       );
     }

@@ -10,6 +10,49 @@ const filesUnder = (directory: string): readonly string[] =>
   });
 
 describe("music core architecture", () => {
+  it("does not embed a gateway-core extension protocol", () => {
+    const forbiddenProtocol = [
+      "@anto-project",
+      "discord-bot-core",
+      "provider-extension",
+      "v1"
+    ].join("/");
+    const forbiddenSymbolFactory = ["Symbol", "for"].join(".");
+    const legacyExtensionName = [
+      "NodeDiscordPlayer",
+      "Extension"
+    ].join("");
+    const repositoryFiles = [
+      ...filesUnder("src"),
+      ...filesUnder("tests"),
+      ...filesUnder("scripts"),
+      ...filesUnder("docs"),
+      ...filesUnder("dist"),
+      "README.md",
+      "package.json",
+      "package-lock.json"
+    ];
+    for (const file of repositoryFiles) {
+      const contents = readFileSync(file, "utf8");
+      assert.equal(
+        contents.includes(forbiddenProtocol),
+        false,
+        `${file} must not embed the gateway-core extension protocol`
+      );
+      assert.equal(
+        contents.includes(`${forbiddenSymbolFactory}(`) &&
+          contents.includes("discord-bot-core"),
+        false,
+        `${file} must not discover a gateway-core protocol by symbol`
+      );
+      assert.equal(
+        contents.includes(legacyExtensionName),
+        false,
+        `${file} must not retain the removed cross-core extension API`
+      );
+    }
+  });
+
   it("confines every music SDK to the concrete Discord Player adapter", () => {
     const sources = filesUnder("src").filter((file) => file.endsWith(".ts"));
     for (const file of sources) {

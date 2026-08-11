@@ -9,16 +9,19 @@ The package never becomes a business authority or a process. It does not own
 commands, authorization, persistence, notification routing or product
 presentation. Music-specific provider dependencies and the Discord Player
 adapter stay in the `./discord-player` subpath. Its public declarations expose
-only the provider-neutral `MusicPlaybackRuntime` contract. A private symbol
-protocol binds `NodeDiscordPlayerExtension` to the generation-aware extension
-host in `discord-bot-core`; Discord.js objects never cross into product code
-and are released before a gateway generation is destroyed.
+only provider-neutral contracts. `NodeDiscordPlayerProviderBinding` accepts an
+opaque provider client through explicit, generation-aware bind/release
+operations; it has no dependency on, or lifecycle protocol shared with, a
+gateway core. Discord.js objects never cross the concrete adapter boundary and
+are released before their owning gateway generation is destroyed.
 
-Antobot is the product composition that consumes both `discord-bot-core` and
-this package. UniBot consumes `discord-bot-core` only. Neither library permits
-Antobot and University Platform to call each other, and neither changes the
-service communication, AccessBroker or persistence boundaries defined by the
-platform specification.
+Antobot is the product composition and the only bridge between
+`discord-bot-core` and this package. Antobot observes the Discord lifecycle and
+calls the music binding directly; the two reusable cores never import or
+coordinate with each other. UniBot consumes `discord-bot-core` only. Neither
+library permits Antobot and University Platform to call each other, and neither
+changes the service communication, AccessBroker or persistence boundaries
+defined by the platform specification.
 
 Provider packages are exact direct dependencies here, including the
 `youtube-dl-exec` version used by the YouTubei extractor and its `mediaplex`

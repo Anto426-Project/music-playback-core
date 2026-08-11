@@ -1,12 +1,15 @@
 import type { MusicPlaybackRuntime, MusicPlaybackRuntimeFactory, MusicPlaybackRuntimeOptions } from "./runtime.js";
 /**
- * Discord Player v7 extension for discord-bot-core's opaque provider host.
- * The provider client exists only inside this concrete adapter and is rebound
- * whenever the owning Discord gateway advances to a new client generation.
+ * Generation-aware Discord Player v7 provider binding.
+ *
+ * The composition root owns the bridge to its Discord gateway and passes the
+ * provider client as an opaque value. Discord.js remains confined to this
+ * concrete adapter and never appears in the public declaration contract.
  */
-export declare class NodeDiscordPlayerExtension implements MusicPlaybackRuntimeFactory {
+export declare class NodeDiscordPlayerProviderBinding implements MusicPlaybackRuntimeFactory {
     #private;
-    constructor();
+    bindProviderClient(providerClient: unknown, generation: number): void;
+    releaseProviderClient(generation: number, signal: AbortSignal): Promise<void>;
     create(options: MusicPlaybackRuntimeOptions): MusicPlaybackRuntime;
 }
 //# sourceMappingURL=discord-player.d.ts.map

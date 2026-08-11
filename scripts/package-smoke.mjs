@@ -89,10 +89,10 @@ try {
     [
       'import { MusicPlaybackError } from "@anto-project/music-playback-core";',
       'import { NodeFfmpegMediaProbeAdapter } from "@anto-project/music-playback-core/node";',
-      'import { NodeDiscordPlayerExtension } from "@anto-project/music-playback-core/discord-player";',
+      'import { NodeDiscordPlayerProviderBinding } from "@anto-project/music-playback-core/discord-player";',
       'if (new MusicPlaybackError("MUSIC.CONTROL_INVALID", "safe", false).code !== "MUSIC.CONTROL_INVALID") process.exit(2);',
       'if (!(new NodeFfmpegMediaProbeAdapter("/invalid/ffmpeg"))) process.exit(3);',
-      'if (typeof NodeDiscordPlayerExtension !== "function") process.exit(4);'
+      'if (typeof NodeDiscordPlayerProviderBinding !== "function") process.exit(4);'
     ].join("\n")
   );
   run("node", ["smoke.mjs"], consumer);
