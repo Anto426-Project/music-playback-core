@@ -1,0 +1,67 @@
+{
+  "name": "@anto-project/music-playback-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Provider-neutral music playback lifecycle, policy and media-safety primitives for Anto-Project.",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "default": "./dist/node.js"
+    },
+    "./discord-player": {
+      "types": "./dist/discord-player.d.ts",
+      "default": "./dist/discord-player.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "docs"
+  ],
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anto426-Project/music-playback-core.git"
+  },
+  "dependencies": {
+    "@discord-player/extractor": "7.2.0",
+    "discord-player": "7.2.0",
+    "discord-player-youtubei": "3.0.0-beta.4",
+    "discord.js": "14.27.0",
+    "mediaplex": "1.0.0",
+    "youtube-dl-exec": "3.1.4"
+  },
+  "scripts": {
+    "clean": "node --eval \"import('node:fs').then(({rmSync}) => rmSync('dist', { recursive: true, force: true }))\"",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --import tsx --test tests/*.test.ts",
+    "check": "npm run typecheck && npm run test",
+    "package:smoke": "node scripts/package-smoke.mjs",
+    "artifact:check": "npm run build && node scripts/check-generated-artifacts.mjs",
+    "dependency:audit": "npm audit --omit=dev --audit-level=high",
+    "ci": "npm run check && npm run package:smoke && npm run artifact:check && npm run dependency:audit",
+    "prepack": "npm run typecheck && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "26.1.2",
+    "tsx": "4.23.9",
+    "typescript": "7.0.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "youtube-dl-exec@3.1.4": false
+  },
+  "license": "UNLICENSED"
+}
