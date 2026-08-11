@@ -481,7 +481,7 @@ class NodeDiscordPlayerRuntime {
             this.#pendingSessions.add(input.guildId);
         }
         try {
-            const channel = await this.#client.channels.fetch(input.voiceChannelId);
+            const channel = await awaitWithSignal(this.#client.channels.fetch(input.voiceChannelId), input.signal, cancellationError);
             aborted(input.signal, cancellationError);
             if (!isGuildVoiceChannel(channel) ||
                 channel.guildId !== input.guildId) {
