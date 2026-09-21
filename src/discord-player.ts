@@ -18,7 +18,6 @@ import {
   type Track
 } from "discord-player";
 import { YoutubeExtractor } from "discord-player-youtubei";
-import youtubeDl from "youtube-dl-exec";
 import { spawn } from "node:child_process";
 import type { Readable } from "node:stream";
 import {
@@ -63,24 +62,9 @@ const DISCORD_PLAYER_PROVIDER_IDENTIFIERS: Readonly<
 
 const APPROVED_YT_DLP_PATH = "/usr/bin/yt-dlp";
 
-const youtubeDlRuntime = youtubeDl as typeof youtubeDl & {
-  readonly constants: Readonly<{ YOUTUBE_DL_PATH: string }>;
-};
-
-const assertApprovedYtDlpRuntime = (): void => {
-  if (youtubeDlRuntime.constants.YOUTUBE_DL_PATH !== APPROVED_YT_DLP_PATH) {
-    throw new MusicPlaybackError(
-      "MUSIC.PROVIDER_UNAVAILABLE",
-      "The YouTube fallback executable is not configured at the approved path.",
-      false
-    );
-  }
-};
-
 const createSafeYoutubeStream = async (
   track: Track
 ): Promise<string | Readable> => {
-  assertApprovedYtDlpRuntime();
   const locator = new URL(track.url);
   if (
     locator.protocol !== "https:" ||
@@ -494,7 +478,6 @@ class NodeDiscordPlayerRuntime implements MusicPlaybackRuntime {
     const register = async (): Promise<BaseExtractor | null> => {
       switch (provider) {
         case "youtubei": {
-          assertApprovedYtDlpRuntime();
           const probe = await new NodeYtDlpMediaProbeAdapter(
             APPROVED_YT_DLP_PATH
           ).probe({
@@ -503,7 +486,7 @@ class NodeDiscordPlayerRuntime implements MusicPlaybackRuntime {
           });
           if (probe.state !== "ready") {
             throw new MusicPlaybackError(
-              "MUSIC.PROVIDER_UNAVAILABLE",
+              "MUSIC.YT_DLP_UNAVAILABLE",
               "The approved YouTube fallback executable is unavailable.",
               true
             );

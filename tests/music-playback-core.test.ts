@@ -309,6 +309,16 @@ describe("MusicPlaybackClient", () => {
     );
   });
 
+  it("keeps actionable registration error codes without leaking provider messages", async () => {
+    const factory = new RuntimeFactoryFake();
+    factory.runtime.registerProvider = async () => { throw new MusicPlaybackError("MUSIC.YT_DLP_UNAVAILABLE", "private provider details", true); };
+    const client = new MusicPlaybackClient(factory, new MediaProbeFake());
+    const health = await client.start();
+    assert.equal(health.providers[0]?.failureCode, "MUSIC.YT_DLP_UNAVAILABLE");
+    assert.equal(JSON.stringify(health).includes("private provider details"), false);
+    await client.stop();
+  });
+
   it("recovers an unavailable provider set without restarting the process", async () => {
     const factory = new RuntimeFactoryFake();
     factory.runtime.registrationFailure = "youtubei";

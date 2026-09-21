@@ -62,7 +62,8 @@ describe("music core architecture", () => {
         assert.match(source, /from\s+["']discord-player["']/u);
         assert.match(source, /from\s+["']@discord-player\/extractor["']/u);
         assert.match(source, /from\s+["']discord-player-youtubei["']/u);
-        assert.match(source, /from\s+["']youtube-dl-exec["']/u);
+        assert.doesNotMatch(source, /youtubeDlRuntime|process\.env\.YOUTUBE_DL/u,
+          "the explicit system executable must not depend on an unused wrapper's environment");
         assert.match(
           source,
           /createStream:\s*createSafeYoutubeStream/u,

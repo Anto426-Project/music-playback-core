@@ -393,11 +393,11 @@ export class MusicPlaybackClient {
                 continue;
             }
             try {
-                await executeBounded((signal) => runtime.registerProvider(provider, signal), this.#options.providerRegistrationTimeoutMs, () => new MusicPlaybackError("MUSIC.PROVIDER_UNAVAILABLE", "Provider registration timed out.", true), startupSignal);
+                await executeBounded((signal) => runtime.registerProvider(provider, signal), this.#options.providerRegistrationTimeoutMs, () => new MusicPlaybackError("MUSIC.PROVIDER_REGISTRATION_TIMEOUT", "Provider registration timed out.", true), startupSignal);
                 providers.push(healthFor(provider, "ready", null));
             }
-            catch {
-                providers.push(healthFor(provider, "unavailable", "MUSIC.PROVIDER_REGISTRATION_FAILED"));
+            catch (error) {
+                providers.push(healthFor(provider, "unavailable", error instanceof MusicPlaybackError ? error.code : "MUSIC.PROVIDER_REGISTRATION_FAILED"));
             }
         }
         if (startupSignal.aborted) {

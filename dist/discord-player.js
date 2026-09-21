@@ -1,7 +1,6 @@
 import { AppleMusicExtractor, AttachmentExtractor, ReverbnationExtractor, SoundCloudExtractor, SpotifyExtractor, VimeoExtractor } from "@discord-player/extractor";
 import { BaseExtractor, Player, QueueRepeatMode } from "discord-player";
 import { YoutubeExtractor } from "discord-player-youtubei";
-import youtubeDl from "youtube-dl-exec";
 import { spawn } from "node:child_process";
 import { ChannelType, Client, GatewayIntentBits } from "discord.js";
 import { sanitizeMusicMedia } from "./media.js";
@@ -18,14 +17,7 @@ const DISCORD_PLAYER_PROVIDER_IDENTIFIERS = Object.freeze({
     apple_music: "com.discord-player.applemusicextractor"
 });
 const APPROVED_YT_DLP_PATH = "/usr/bin/yt-dlp";
-const youtubeDlRuntime = youtubeDl;
-const assertApprovedYtDlpRuntime = () => {
-    if (youtubeDlRuntime.constants.YOUTUBE_DL_PATH !== APPROVED_YT_DLP_PATH) {
-        throw new MusicPlaybackError("MUSIC.PROVIDER_UNAVAILABLE", "The YouTube fallback executable is not configured at the approved path.", false);
-    }
-};
 const createSafeYoutubeStream = async (track) => {
-    assertApprovedYtDlpRuntime();
     const locator = new URL(track.url);
     if (locator.protocol !== "https:" ||
         ![
@@ -265,13 +257,12 @@ class NodeDiscordPlayerRuntime {
         const register = async () => {
             switch (provider) {
                 case "youtubei": {
-                    assertApprovedYtDlpRuntime();
                     const probe = await new NodeYtDlpMediaProbeAdapter(APPROVED_YT_DLP_PATH).probe({
                         timeoutMs: this.#options.probeTimeoutMs,
                         signal
                     });
                     if (probe.state !== "ready") {
-                        throw new MusicPlaybackError("MUSIC.PROVIDER_UNAVAILABLE", "The approved YouTube fallback executable is unavailable.", true);
+                        throw new MusicPlaybackError("MUSIC.YT_DLP_UNAVAILABLE", "The approved YouTube fallback executable is unavailable.", true);
                     }
                     return this.#player.extractors.register(YoutubeExtractor, {
                         createStream: createSafeYoutubeStream

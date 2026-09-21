@@ -76,6 +76,8 @@ export type MusicPlaybackControl =
   | Readonly<{ kind: "set_volume"; volume: number }>;
 
 export type MusicPlaybackErrorCode =
+  | "MUSIC.YT_DLP_UNAVAILABLE"
+  | "MUSIC.PROVIDER_REGISTRATION_TIMEOUT"
   | "MUSIC.CLIENT_NOT_STARTED"
   | "MUSIC.MEDIA_ENGINE_UNAVAILABLE"
   | "MUSIC.PROVIDER_DISABLED"

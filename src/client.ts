@@ -758,19 +758,19 @@ export class MusicPlaybackClient
           this.#options.providerRegistrationTimeoutMs,
           () =>
             new MusicPlaybackError(
-              "MUSIC.PROVIDER_UNAVAILABLE",
+              "MUSIC.PROVIDER_REGISTRATION_TIMEOUT",
               "Provider registration timed out.",
               true
             ),
           startupSignal
         );
         providers.push(healthFor(provider, "ready", null));
-      } catch {
+      } catch (error: unknown) {
         providers.push(
           healthFor(
             provider,
             "unavailable",
-            "MUSIC.PROVIDER_REGISTRATION_FAILED"
+            error instanceof MusicPlaybackError ? error.code : "MUSIC.PROVIDER_REGISTRATION_FAILED"
           )
         );
       }
