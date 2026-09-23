@@ -17,10 +17,6 @@
     "./node": {
       "types": "./dist/node.d.ts",
       "default": "./dist/node.js"
-    },
-    "./discord-player": {
-      "types": "./dist/discord-player.d.ts",
-      "default": "./dist/discord-player.js"
     }
   },
   "files": [
@@ -34,15 +30,7 @@
     "type": "git",
     "url": "git+https://github.com/Anto426-Project/music-playback-core.git"
   },
-  "dependencies": {
-    "@discord-player/extractor": "7.2.0",
-    "@snazzah/davey": "0.1.12",
-    "discord-player": "7.2.0",
-    "discord-player-youtubei": "3.0.0-beta.4",
-    "discord.js": "14.27.0",
-    "mediaplex": "1.0.0",
-    "youtube-dl-exec": "3.1.4"
-  },
+  "dependencies": {},
   "scripts": {
     "clean": "node --eval \"import('node:fs').then(({rmSync}) => rmSync('dist', { recursive: true, force: true }))\"",
     "build": "npm run clean && tsc -p tsconfig.build.json",
@@ -61,8 +49,7 @@
     "typescript": "7.0.2"
   },
   "allowScripts": {
-    "esbuild@0.28.2": true,
-    "youtube-dl-exec@3.1.4": false
+    "esbuild@0.28.2": true
   },
   "license": "UNLICENSED"
 }

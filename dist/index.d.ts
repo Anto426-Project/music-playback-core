@@ -4,4 +4,5 @@ export * from "./models.js";
 export * from "./ports.js";
 export * from "./provider-policy.js";
 export * from "./runtime.js";
+export * from "./serial-executor.js";
 //# sourceMappingURL=index.d.ts.map
