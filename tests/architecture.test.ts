@@ -93,6 +93,7 @@ describe("music core architecture", () => {
     ) as { dependencies?: Record<string, string> };
     assert.deepEqual(packageJson.dependencies ?? {}, {
       "@discord-player/extractor": "7.2.0",
+      "@snazzah/davey": "0.1.12",
       "discord-player": "7.2.0",
       "discord-player-youtubei": "3.0.0-beta.4",
       "discord.js": "14.27.0",
