@@ -1,4 +1,4 @@
-import { type MusicPlaybackControl, type MusicProviderKey, type MusicProviderPolicy, type MusicSessionSnapshot, type ResolvedMediaCollection, type ResolvedMediaItem } from "./models.js";
+import { type MusicPlaybackControl, type MusicQueueSnapshot, type MusicProviderKey, type MusicProviderPolicy, type MusicSessionSnapshot, type ResolvedMediaCollection, type ResolvedMediaItem } from "./models.js";
 import type { AudioPlaybackPort, MediaProbePort, MediaResolverPort, MusicPlaybackClientHealth, MusicPlaybackClientLifecyclePort } from "./ports.js";
 import type { MusicPlaybackRuntimeFactory } from "./runtime.js";
 export type MusicPlaybackClientOptions = Readonly<{
@@ -52,5 +52,6 @@ export declare class MusicPlaybackClient implements MusicPlaybackClientLifecycle
         readonly signal?: AbortSignal;
     }): Promise<MusicSessionSnapshot | null>;
     session(guildIdInput: string, signal?: AbortSignal): Promise<MusicSessionSnapshot | null>;
+    queue(guildIdInput: string, signal?: AbortSignal): Promise<MusicQueueSnapshot | null>;
 }
 //# sourceMappingURL=client.d.ts.map

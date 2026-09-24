@@ -1,4 +1,4 @@
-import type { MusicPlaybackControl, MusicProviderKey, MusicProviderPolicy, MusicSessionSnapshot, ResolvedMediaCollection, ResolvedMediaItem } from "./models.js";
+import type { MusicPlaybackControl, MusicQueueSnapshot, MusicProviderKey, MusicProviderPolicy, MusicSessionSnapshot, ResolvedMediaCollection, ResolvedMediaItem } from "./models.js";
 export type MediaEngineProbeResult = Readonly<{
     state: "ready" | "unavailable";
     version: string | null;
@@ -21,6 +21,7 @@ export interface MediaResolverPort {
     }): Promise<ResolvedMediaCollection>;
 }
 export interface AudioPlaybackPort {
+    queue?(guildId: string, signal?: AbortSignal): Promise<MusicQueueSnapshot | null>;
     enqueue(input: {
         readonly guildId: string;
         readonly voiceChannelId: string;

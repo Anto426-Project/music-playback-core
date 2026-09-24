@@ -1,6 +1,7 @@
 import type {
   MusicPlaybackControl,
   MusicProviderKey,
+  MusicQueueSnapshot,
   MusicSessionSnapshot
 } from "./models.js";
 
@@ -27,6 +28,7 @@ export type MusicPlaybackRuntimeOptions = Readonly<{
 }>;
 
 export interface MusicPlaybackRuntime {
+  queue?(guildId: string, signal: AbortSignal): Promise<MusicQueueSnapshot | null>;
   registerProvider(
     provider: MusicProviderKey,
     signal: AbortSignal

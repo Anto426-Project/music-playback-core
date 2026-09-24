@@ -64,6 +64,11 @@ export type MusicSessionSnapshot = Readonly<{
   volume: number;
 }>;
 
+/** Ordered playback state. The current track, when present, is the first item. */
+export type MusicQueueSnapshot = MusicSessionSnapshot & Readonly<{
+  items: readonly ResolvedMediaItem[];
+}>;
+
 export type MusicPlaybackControl =
   | Readonly<{ kind: "pause" }>
   | Readonly<{ kind: "resume" }>

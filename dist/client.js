@@ -769,5 +769,22 @@ export class MusicPlaybackClient {
         const snapshot = await this.#executeTrackedOperation(runtime, guildId, (activeRuntime, operationSignal) => activeRuntime.session(guildId, operationSignal), this.#options.sessionReadTimeoutMs, () => new MusicPlaybackError("MUSIC.MEDIA_ENGINE_UNAVAILABLE", "The music session read timed out.", true), signal);
         return this.#normalizeSnapshot(snapshot, guildId);
     }
+    async queue(guildIdInput, signal) {
+        const runtime = this.#readyRuntime();
+        const guildId = boundedIdentity(guildIdInput, "Guild id");
+        if (runtime.queue === undefined) {
+            throw new MusicPlaybackError("MUSIC.MEDIA_ENGINE_UNAVAILABLE", "Queue inspection is unavailable.", true);
+        }
+        const snapshot = await this.#executeTrackedOperation(runtime, guildId, (activeRuntime, operationSignal) => activeRuntime.queue(guildId, operationSignal), this.#options.sessionReadTimeoutMs, () => new MusicPlaybackError("MUSIC.MEDIA_ENGINE_UNAVAILABLE", "The music queue read timed out.", true), signal);
+        if (snapshot === null)
+            return null;
+        const normalized = this.#normalizeSnapshot(snapshot, guildId);
+        if (normalized === null || !Array.isArray(snapshot.items) ||
+            snapshot.items.length !== normalized.queuedItemCount + (normalized.current === null ? 0 : 1)) {
+            throw new MusicPlaybackError("MUSIC.MEDIA_ENGINE_UNAVAILABLE", "The runtime returned an invalid queue.", true);
+        }
+        const items = snapshot.items.map((item) => this.#normalizeCandidate(item, item.sourceProvider));
+        return Object.freeze({ ...normalized, items: Object.freeze(items) });
+    }
 }
 //# sourceMappingURL=client.js.map

@@ -1,4 +1,4 @@
-import type { MusicPlaybackControl, MusicProviderKey, MusicSessionSnapshot } from "./models.js";
+import type { MusicPlaybackControl, MusicProviderKey, MusicQueueSnapshot, MusicSessionSnapshot } from "./models.js";
 export type MusicRuntimeCandidate = Readonly<{
     providerReference: string;
     sourceProvider: MusicProviderKey;
@@ -20,6 +20,7 @@ export type MusicPlaybackRuntimeOptions = Readonly<{
     bridgeProviderOrder: readonly MusicProviderKey[];
 }>;
 export interface MusicPlaybackRuntime {
+    queue?(guildId: string, signal: AbortSignal): Promise<MusicQueueSnapshot | null>;
     registerProvider(provider: MusicProviderKey, signal: AbortSignal): Promise<void>;
     resolve(input: {
         readonly guildId: string;

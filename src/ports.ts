@@ -1,5 +1,6 @@
 import type {
   MusicPlaybackControl,
+  MusicQueueSnapshot,
   MusicProviderKey,
   MusicProviderPolicy,
   MusicSessionSnapshot,
@@ -32,6 +33,7 @@ export interface MediaResolverPort {
 }
 
 export interface AudioPlaybackPort {
+  queue?(guildId: string, signal?: AbortSignal): Promise<MusicQueueSnapshot | null>;
   enqueue(input: {
     readonly guildId: string;
     readonly voiceChannelId: string;
